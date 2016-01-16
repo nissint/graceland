@@ -1,0 +1,116 @@
+
+
+var Graceland = function() {
+
+   var Player = function( playerInfo ) {
+      this.started = false;
+      this.instance = null;
+      this.init = playerInfo.init || null;
+      this.factory = playerInfo.factory || null;
+      this.value = playerInfo.value || null;
+
+      if ( this.factory ) {
+         var stripCommentsReg = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+         var argNamesReg = /([^\s,]+)/g;
+         var fnStr = this.factory.toString().replace( stripCommentsReg, '' ); 
+         var result = fnStr.slice( fnStr.indexOf('(')+1, fnStr.indexOf(')')).match( argNamesReg );
+         this.parameters = result || [];
+      }
+   }
+
+   var players = {}
+   var playing = false;
+
+   function _register( playerInfo ) {
+
+      if ( players[ playerInfo.id ] ) {
+         throw new Error( "Player already registered with id: " + playerInfo.id )
+      }
+
+      if ( ! playerInfo.factory && ! playerInfo.value ) {
+         throw new Error( "No value or factory exists in Player: " + playerInfo.id );
+      }
+      
+      var player = new Player( playerInfo );
+      players[ playerInfo.id ] = player;
+      console.log( playerInfo.id + " is registered with Graceland" );
+   }
+
+   function _getInstanceFromId( id ) {
+      var player = players[ id ];
+
+      if ( ! player ) {
+         throw new Error( "No Player with id: (" + id + ") has been registered." );
+      }
+
+      if ( ! playing ) {
+         throw new Error( "Graceland isn't playing, graceland.play() first." );
+      }
+
+      return player.instance;
+   }
+
+   function _getInstance( player ) {
+      if ( player.factory ) {
+         var args = [];
+         player.parameters.forEach( function( pId ) {
+            var pPlayer = players[ pId ];   
+            
+            if ( ! pPlayer ) {
+               console.log( Object.keys( players ) );
+               throw new Error( "Missing dependency: " + pId );
+            }
+
+            args.push( _getInstance( pPlayer ) );
+         });
+
+         player.instance = player.factory.apply( null, args );
+
+         if ( player.instance.init ) {
+            player.instance.init();
+         }
+
+         player.instance
+         return player.instance;
+      } else {
+         player.instance = player.value;
+         return player.instance;
+      }
+   }
+
+   function _play() {
+      
+      Object.keys( players ).forEach( function( id ) {
+         var player = players[ id ];
+         player.instance = _getInstance( player );
+      });
+
+      playing = true;
+   }
+
+   function _getPlayerIds() {
+      return Object.keys( players );
+   }
+
+   function _clear() {
+      Object.keys( players ).forEach( function( id ) {
+         if ( players[ id ].instance.destroy ) {
+            players[ id ].instance.destroy();
+         }
+
+         delete players[ id ];
+      });
+
+      players = {};
+   }
+
+   return {
+      register: _register,
+      play: _play,
+      get: _getInstanceFromId,
+      getPlayerIds: _getPlayerIds,
+      clear: _clear
+   }
+}
+
+module.exports = new Graceland()
