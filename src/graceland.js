@@ -98,7 +98,6 @@ var Graceland = function() {
       Object.keys( players ).forEach( function( id ) {
          var p = players[ id ];
          if ( p.instance && ( p.instance.destroy === 'function' ) ) {
-            console.log( "RIGHT HERE: " + players[ id ].instance.destroy );
             players[ id ].instance.destroy();
          }
 
