@@ -9,13 +9,15 @@ var Graceland = function() {
       this.factory = playerInfo.factory || null;
       this.value = playerInfo.value || null;
 
-      if ( this.factory ) {
+      var result;
+      if ( typeof( this.factory) === 'function' ) {
          var stripCommentsReg = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
          var argNamesReg = /([^\s,]+)/g;
          var fnStr = this.factory.toString().replace( stripCommentsReg, '' ); 
-         var result = fnStr.slice( fnStr.indexOf('(')+1, fnStr.indexOf(')')).match( argNamesReg );
-         this.parameters = result || [];
+         result = fnStr.slice( fnStr.indexOf('(')+1, fnStr.indexOf(')')).match( argNamesReg );
       }
+
+      this.parameters = result || [];
    }
 
    var players = {}
@@ -23,8 +25,9 @@ var Graceland = function() {
 
    function _register( playerInfo ) {
 
-      if ( players[ playerInfo.id ] ) {
-         throw new Error( "Player already registered with id: " + playerInfo.id )
+      var player = players[ playerInfo.id ];
+      if ( player && player.instance ) {
+         throw new Error( "Player with id (" + playerInfo.id + ") has already been injected" + playerInfo.id )
       }
 
       if ( ! playerInfo.factory && ! playerInfo.value ) {
@@ -33,7 +36,6 @@ var Graceland = function() {
       
       var player = new Player( playerInfo );
       players[ playerInfo.id ] = player;
-      console.log( playerInfo.id + " is registered with Graceland" );
    }
 
    function _getInstanceFromId( id ) {
@@ -94,7 +96,9 @@ var Graceland = function() {
 
    function _clear() {
       Object.keys( players ).forEach( function( id ) {
-         if ( players[ id ].instance.destroy ) {
+         var p = players[ id ];
+         if ( p.instance && ( p.instance.destroy === 'function' ) ) {
+            console.log( "RIGHT HERE: " + players[ id ].instance.destroy );
             players[ id ].instance.destroy();
          }
 

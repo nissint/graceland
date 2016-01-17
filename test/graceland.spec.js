@@ -14,8 +14,9 @@ var FileParser = function( filereader, fpConfig ) {
    var text;
 
    function _init() {
-      filereader.read( fpConfig.filename, function( text ) {
-         console.log( "TEXT: " + text );
+      filereader.read( fpConfig.filename, function( inText ) {
+         console.log( "TEXT: " + inText );
+         text = inText;
       });
    }
 
@@ -77,15 +78,43 @@ describe( "Testing Graceland depencency injection", function() {
          factory: FileParser
       });
 
-      graceland.play();
    });
   
    afterEach( function() {
       graceland.clear();
    });
 
-   it( "has a way to access player instances", function() {
+   it ( "has a way to access player instances", function() {
+      graceland.play();
       var c = graceland.get( 'fpConfig' );
       expect( c ).toBe( config );
+   });
+
+   it ( "makes unit testable code", function() {
+   
+      var identifiableText = "SPECIAL TEXT";
+
+      var mockRead = jasmine.createSpy( 'read' );
+      mockRead.and.callFake( function( fileName, success ) {
+         expect( fileName ).toBe( config.filename );
+         success( identifiableText );
+      });
+
+      var mockFactory = jasmine.createSpy( 'filereader' );
+      mockFactory.and.callFake( function() {
+          return {
+            read: mockRead
+          }
+      });
+
+      graceland.register({
+         id: 'filereader',
+         factory: mockFactory
+      });
+
+      graceland.play();
+
+      var fp = graceland.get( 'fileparser' );
+      expect( fp.getText() ).toBe( identifiableText );
    });
 });
