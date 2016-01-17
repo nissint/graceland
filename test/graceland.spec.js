@@ -55,6 +55,20 @@ graceland.play();
 describe( "Testing Graceland depencency injection", function() {
    
    beforeEach( function() {
+      graceland.clear();
+   });
+
+   it ( "has a way to access player instances", function() {
+ 
+      graceland.register({
+         id: 'filereader',
+         factory: FileReader
+      });
+
+      graceland.register({
+         id: 'fileparser',
+         factory: FileParser
+      });
 
       graceland.register({
          id: 'fpConfig',
@@ -64,29 +78,6 @@ describe( "Testing Graceland depencency injection", function() {
          }
       });
 
-      graceland.register({
-         id: 'filereader',
-         factory: FileReader,
-         init: function( instance ) {
-            console.log( "Init the filereader" );
-         },
-         destroy: function( instance ) { 
-            console.log( "Destroy the filereader" );
-         }
-      });
-
-      graceland.register({
-         id: 'fileparser',
-         factory: FileParser
-      });
-
-   });
-  
-   afterEach( function() {
-      graceland.clear();
-   });
-
-   it ( "has a way to access player instances", function() {
       graceland.play();
       var c = graceland.get( 'fpConfig' );
       expect( c ).toBe( config );
@@ -114,6 +105,19 @@ describe( "Testing Graceland depencency injection", function() {
          factory: mockFactory
       });
 
+      graceland.register({
+         id: 'fpConfig',
+         value: config,
+         init: function() {
+            console.log( "Preparing some stuff" );
+         }
+      });
+
+      graceland.register({
+         id: 'fileparser',
+         factory: FileParser
+      });
+
       graceland.play();
 
       var fp = graceland.get( 'fileparser' );
@@ -121,8 +125,6 @@ describe( "Testing Graceland depencency injection", function() {
    });
 
    it ( "can inject third party libraries easily", function() {
-
-      graceland.clear();
 
       var fs = require( 'fs' );
       graceland.register({
@@ -146,7 +148,7 @@ describe( "Testing Graceland depencency injection", function() {
          factory: function( fpConfig, file_system ) {
          
             expect( fpConfig ).toBeDefined();
-            expect( fpConfig ).toBe( config) ;
+            expect( fpConfig ).toBe( config ) ;
             expect( file_system ).toBeDefined();
             expect( file_system ).toBe( fs );
 
