@@ -1,11 +1,9 @@
-#!/usr/local/bin/node
-
 var graceland = require( "../src/graceland.js" );
 
 var config = {
    filename: '/tmp/testfile.txt',
-   init: function() {
-      console.log( "<<runngin config function>>" );
+   somefunction: function() {
+      console.log( "<<a functon>>" );
    }
 }
 
@@ -15,7 +13,6 @@ var FileParser = function( filereader, fpConfig ) {
 
    function _init() {
       filereader.read( fpConfig.filename, function( inText ) {
-         console.log( "TEXT: " + inText );
          text = inText;
       });
    }
@@ -31,7 +28,7 @@ var FileParser = function( filereader, fpConfig ) {
 }
 
 var FileReader = function( fpConfig ) {
-      
+
    var fs = require( 'fs' );
    var text;
 
@@ -48,10 +45,6 @@ var FileReader = function( fpConfig ) {
       });
    }
 
-   function _destroy() {
-      console.log( "Destroy was run" )
-   }
-
    return {
       read: _read
    }
@@ -65,12 +58,21 @@ describe( "Testing Graceland depencency injection", function() {
 
       graceland.register({
          id: 'fpConfig',
-         value: config
+         value: config,
+         init: function() {
+            console.log( "Preparing some stuff" );
+         }
       });
 
       graceland.register({
          id: 'filereader',
-         factory: FileReader
+         factory: FileReader,
+         init: function( instance ) {
+            console.log( "Init the filereader" );
+         },
+         destroy: function( instance ) { 
+            console.log( "Destroy the filereader" );
+         }
       });
 
       graceland.register({
@@ -116,5 +118,42 @@ describe( "Testing Graceland depencency injection", function() {
 
       var fp = graceland.get( 'fileparser' );
       expect( fp.getText() ).toBe( identifiableText );
+   });
+
+   it ( "can inject third party libraries easily", function() {
+
+      graceland.clear();
+
+      var fs = require( 'fs' );
+      graceland.register({
+         id: 'file_system',
+         lib: fs,
+         prep: function( fs ) {
+            return fs;
+         }
+      });
+
+      graceland.register({
+         id: 'fpConfig',
+         value: config,
+         init: function() {
+            console.log( "Preparing some stuff" );
+         }
+      });
+
+      graceland.register({
+         id: 'wtf',
+         factory: function( fpConfig, file_system ) {
+         
+            expect( fpConfig ).toBeDefined();
+            expect( fpConfig ).toBe( config) ;
+            expect( file_system ).toBeDefined();
+            expect( file_system ).toBe( fs );
+
+            return {};
+         }
+      });
+
+      graceland.play();
    });
 });

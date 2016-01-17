@@ -2,15 +2,18 @@
 
 var Graceland = function() {
 
-   var Player = function( playerInfo ) {
-      this.started = false;
+   function Player( playerInfo ) {
+      
+      this.id = playerInfo.id;
+
       this.instance = null;
-      this.init = playerInfo.init || null;
+      this.prep = playerInfo.prep || null;
       this.factory = playerInfo.factory || null;
       this.value = playerInfo.value || null;
+      this.lib = playerInfo.lib || null;
 
       var result;
-      if ( typeof( this.factory) === 'function' ) {
+      if ( _isFunction( this.factory ) ) {
          var stripCommentsReg = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
          var argNamesReg = /([^\s,]+)/g;
          var fnStr = this.factory.toString().replace( stripCommentsReg, '' ); 
@@ -30,7 +33,7 @@ var Graceland = function() {
          throw new Error( "Player with id (" + playerInfo.id + ") has already been injected" + playerInfo.id )
       }
 
-      if ( ! playerInfo.factory && ! playerInfo.value ) {
+      if ( ! playerInfo.factory && ! playerInfo.value && ! playerInfo.lib ) {
          throw new Error( "No value or factory exists in Player: " + playerInfo.id );
       }
       
@@ -53,13 +56,19 @@ var Graceland = function() {
    }
 
    function _getInstance( player ) {
-      if ( player.factory ) {
+
+      /**
+       * Actions to be performed if the PLayer is a factory used to create
+       * an instance.
+       */
+      if ( _isFunction( player.factory ) ) {
+
          var args = [];
          player.parameters.forEach( function( pId ) {
+         
             var pPlayer = players[ pId ];   
             
             if ( ! pPlayer ) {
-               console.log( Object.keys( players ) );
                throw new Error( "Missing dependency: " + pId );
             }
 
@@ -67,16 +76,42 @@ var Graceland = function() {
          });
 
          player.instance = player.factory.apply( null, args );
+      
+         if ( ! player.instance ) {
+            throw new Error( "Factory (" + player.id + ") didn't create anything." );
+         }
 
-         if ( player.instance.init ) {
+         if ( _isFunction( player.instance.init ) ) {
             player.instance.init();
          }
 
-         player.instance
          return player.instance;
-      } else {
+
+      /**
+       * Actions to be performed if the Player is a third party Library
+       */
+      } else if ( player.lib ) {
+
+         if ( _isFunction( player.prep ) ) {
+            player.instance = player.prep( player.lib );
+         } else {
+            player.instance = player.lib;
+         }
+
+         return player.instance;
+
+      /**
+       * Actions to be performed if the PLayer is a basic value
+       */
+      } else if ( player.value ) {
+
          player.instance = player.value;
          return player.instance;
+
+      } else {
+         // The check in register should catch this case, but this error
+         // is good for when edits remove that by accident.
+         throw new Error( "No factory, library or value found." );
       }
    }
 
@@ -94,17 +129,33 @@ var Graceland = function() {
       return Object.keys( players );
    }
 
+   /**
+    * clear() Shold be run when it is necesssary to clear out 
+    * the cache of players. If the player is a user defined factory 
+    * and has a destroy() method defined on the instance, then that
+    * should be run before deletion.
+    */
    function _clear() {
       Object.keys( players ).forEach( function( id ) {
          var p = players[ id ];
-         if ( p.instance && ( p.instance.destroy === 'function' ) ) {
-            players[ id ].instance.destroy();
+         if ( _isFunction( p.factory ) ) {
+            if ( p.instance && _isFunction( p.instance.destroy ) ) {
+               players[ id ].instance.destroy();
+            }
          }
 
          delete players[ id ];
       });
 
       players = {};
+   }
+
+   /*
+    * Helper section, consider moving to helpers.js file
+    */
+
+   function _isFunction( func ) {
+      return ( typeof( func ) === 'function' );
    }
 
    return {
