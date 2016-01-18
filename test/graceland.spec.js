@@ -1,5 +1,5 @@
 var graceland = require( "../src/graceland.js" );
-var E = require( "../src/ERRORS.js" );
+var E = require( "../src/errors.js" );
 
 var config = {
    filename: '/tmp/testfile.txt',

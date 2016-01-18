@@ -18,7 +18,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var E = require( "./ERRORS.js" );
+var E = require( "./errors.js" );
 
 /*
  * Graceland is a tiny dependency injection framework developed specifically
