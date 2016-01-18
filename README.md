@@ -1,2 +1,2 @@
 
-Yet another Javascript DI framework.  One I like hopfully.
+Yet another Javascript DI framework.  One I like hopefully.
