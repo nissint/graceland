@@ -1,16 +1,60 @@
 
+/*
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of 
+ * this software and associated documentation files (the "Software"), to deal in the 
+ * Software without restriction, including without limitation the rights to use, 
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+ * Software, and to permit persons to whom the Software is furnished to do so, 
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all 
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS 
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
+/*
+ * Graceland is a tiny dependency injection framework developed specifically
+ * to make testing easier.
+ *
+ * The DI container, the single instance created and exported.
+ */
 var Graceland = function() {
 
+   /*
+    * Everything registered with Graceland becomes a player. Players
+    * can have factories, libraries or values to be injected as parameters
+    * in factories.
+    *
+    * Factories: A factory will be called with all the parameters in it's signature 
+    * injected. Graceland assumes that a factory will return an object. Immediately
+    * after being created, Graceland checks to see if the instance has an init() and
+    * calles it if the method exists. Similarly, when Graceland.clear() is called, a
+    * destroy() method is looked for on each existance and called if found.
+    *
+    * Libraries: A library is used when Graceland isn't to perform any instantiation
+    * or dependency injection on the object.  This is useful for when one needs to inject
+    * an unmolested function, class or object into a function.  It's possible that one
+    * might need to do some preparation on the library after Graceland begins playing,
+    * therefore a developer can define a prep() in the configuration information when
+    * registering the library that will be run on startup.
+    *
+    * Values: Values are simple values like strings, primatives or even objects that are 
+    * set as the instance value of the Player.
+    *
+    */
    function Player( playerInfo ) {
       
       this.id = playerInfo.id;
 
       this.instance = null;
-      this.prep = playerInfo.prep || null;
       this.factory = playerInfo.factory || null;
       this.value = playerInfo.value || null;
-      this.lib = playerInfo.lib || null;
 
       var result;
       if ( _isFunction( this.factory ) ) {
@@ -18,6 +62,10 @@ var Graceland = function() {
          var argNamesReg = /([^\s,]+)/g;
          var fnStr = this.factory.toString().replace( stripCommentsReg, '' ); 
          result = fnStr.slice( fnStr.indexOf('(')+1, fnStr.indexOf(')')).match( argNamesReg );
+      } else if ( _isDefined( playerInfo.lib ) ) {
+         this.lib = playerInfo.lib;
+         if ( _isDefined( playerInfo.prep ) ) 
+            this.prep = playerInfo.prep;
       }
 
       this.parameters = result || [];
@@ -26,6 +74,10 @@ var Graceland = function() {
    var players = {}
    var playing = false;
 
+   /*
+    * Create the player and register it. Make sure that there isn't an instance yet
+    * and that it has one of the required values: factory, lib or value.
+    */
    function _register( playerInfo ) {
 
       var player = players[ playerInfo.id ];
@@ -41,6 +93,9 @@ var Graceland = function() {
       players[ playerInfo.id ] = player;
    }
 
+   /*
+    * Get the instance using the player id.
+    */
    function _getInstanceFromId( id ) {
       var player = players[ id ];
 
@@ -55,10 +110,14 @@ var Graceland = function() {
       return player.instance;
    }
 
+   /*
+    * Get the instance of a player. If there is none, then recursively create 
+    * parameters until one can be returned.
+    */
    function _getInstance( player ) {
 
       /**
-       * Actions to be performed if the PLayer is a factory used to create
+       * Actions to be performed if the Player is a factory used to create
        * an instance.
        */
       if ( _isFunction( player.factory ) ) {
@@ -90,7 +149,7 @@ var Graceland = function() {
       /**
        * Actions to be performed if the Player is a third party Library
        */
-      } else if ( player.lib ) {
+      } else if ( _isDefined( player.lib ) ) {
 
          if ( _isFunction( player.prep ) ) {
             player.instance = player.prep( player.lib );
@@ -103,7 +162,7 @@ var Graceland = function() {
       /**
        * Actions to be performed if the PLayer is a basic value
        */
-      } else if ( player.value ) {
+      } else if ( _isDefined( player.value ) ) {
 
          player.instance = player.value;
          return player.instance;
@@ -115,8 +174,16 @@ var Graceland = function() {
       }
    }
 
+   /*
+    * Activate Graceland. This will create all the instances and do all 
+    * the parameter injecting.
+    */
    function _play() {
       
+      if ( playing ) {
+         throw new Error( "Graceland is already playing." );
+      }
+
       Object.keys( players ).forEach( function( id ) {
          var player = players[ id ];
          player.instance = _getInstance( player );
@@ -125,25 +192,39 @@ var Graceland = function() {
       playing = true;
    }
 
-   function _getPlayerIds() {
-      return Object.keys( players );
-   }
-
-   /**
-    * clear() Shold be run when it is necesssary to clear out 
-    * the cache of players. If the player is a user defined factory 
+   /* 
+    * Stop Graceland and delete player instances. If the player is a user defined factory 
     * and has a destroy() method defined on the instance, then that
-    * should be run before deletion.
+    * should be run.
     */
-   function _clear() {
+   function _stop() {
+     
       Object.keys( players ).forEach( function( id ) {
          var p = players[ id ];
          if ( _isFunction( p.factory ) ) {
             if ( p.instance && _isFunction( p.instance.destroy ) ) {
                players[ id ].instance.destroy();
+               delete players[ id ].instance; 
             }
          }
+      })
 
+      playing = false;
+   }
+
+   function _getPlayerIds() {
+      return Object.keys( players );
+   }
+
+   /*
+    * clear() Shold be run when it is necesssary to clear out the player cache.
+    * stop() is called before the player info is deleted
+    */
+   function _clear() {
+      
+      _stop();
+
+      Object.keys( players ).forEach( function( id ) {
          delete players[ id ];
       });
 
@@ -151,20 +232,28 @@ var Graceland = function() {
    }
 
    /*
-    * Helper section, consider moving to helpers.js file
+    * Return true if the parameter is a function.
     */
-
    function _isFunction( func ) {
       return ( typeof( func ) === 'function' );
    }
 
-   return {
+   /*
+    * Return true if the parameter is not undefined.
+    */
+   function _isDefined( value ) {
+      return ( typeof( value ) !== 'undefined' );
+   }
+
+   var api = {
       register: _register,
       play: _play,
+      stop: _stop,
       get: _getInstanceFromId,
-      getPlayerIds: _getPlayerIds,
       clear: _clear
    }
+
+   return api;
 }
 
 module.exports = new Graceland()
