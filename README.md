@@ -1,2 +1,3 @@
+![Graceland](https://github.com/qtpeters/graceland/blob/master/wiki/images/GracelandGuitar_vectorized.png)
 
-Yet another Javascript DI framework.  One I like hopefully.
+Welcome to Graceland.
