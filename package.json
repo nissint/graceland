@@ -1,0 +1,35 @@
+{
+   "name": "Graceland",
+   "version": "0.1.1",
+   "description": "A Dependency Injection container with soul",
+   "main": "graceland.js",
+   "homepage": "https://github.com/qtpeters/graceland",
+   "directories": {
+      "src": "src",
+      "test": "test",
+      "examples": "examples"
+   },
+   "scripts": {
+      "test": "./node_modules/.bin/mocha"
+   },
+   "keywords": [
+      "ioc",
+      "dependency",
+      "injection",
+      "container"
+   ],
+   "author": "Quinn Peters quinn.t.peters@gmail.com",
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/qtpeters/graceland"
+   },
+   "license": "MIT",
+   "devDependencies": {
+      "mocha": "^2.2.5",
+      "should": "^7.0.1",
+      "sinon": "^1.15.4"   
+   },
+   "dependencies": {
+      "bluebird": "^2.9.34"
+   }
+}
