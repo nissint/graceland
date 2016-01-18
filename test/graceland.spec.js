@@ -59,16 +59,6 @@ describe( "Testing Graceland depencency injection", function() {
    it ( "has a way to access player instances", function() {
  
       graceland.register({
-         id: 'filereader',
-         factory: FileReader
-      });
-
-      graceland.register({
-         id: 'fileparser',
-         factory: FileParser
-      });
-
-      graceland.register({
          id: 'fpConfig',
          value: config
       });
@@ -147,4 +137,65 @@ describe( "Testing Graceland depencency injection", function() {
 
       graceland.play();
    });
+
+   it ( "runs the init function of a defined factory when the framework is started", function() {
+      
+      var init = jasmine.createSpy( 'mockInit' );
+
+      var TestFactory = function() {
+         return {
+            init: init
+         }
+      }
+
+      graceland.register({
+         id: 'testId',
+         factory: TestFactory
+      });
+      
+      graceland.play();
+
+      expect( init ).toHaveBeenCalled();
+   });
+   
+   it ( "runs the destroy function of a defined factory when the framework is stopped", function() {
+      
+      var destroy = jasmine.createSpy( 'mockDestroy' );
+
+      var TestFactory = function() {
+         return {
+            destroy: destroy
+         }
+      }
+
+      graceland.register({
+         id: 'testId',
+         factory: TestFactory
+      });
+      
+      graceland.play();
+      graceland.stop();
+
+      expect( destroy ).toHaveBeenCalled();
+   });
+
+   it ( "runs the prep function of a defined library when the framework is started", function() {
+      
+      var MockLibrary = jasmine.createSpy();
+      var prep = jasmine.createSpy( 'mockPrep' );
+      prep.and.callFake( function( mockLib ) {
+         expect( mockLib ).toBe( MockLibrary );
+      });
+
+      graceland.register({
+         id: 'testId',
+         lib: MockLibrary,
+         prep: prep
+      });
+      
+      graceland.play();
+
+      expect( prep ).toHaveBeenCalled();
+   });
+
 });
