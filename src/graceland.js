@@ -18,6 +18,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+var E = require( "./ERRORS.js" );
+
 /*
  * Graceland is a tiny dependency injection framework developed specifically
  * to make testing easier.
@@ -82,11 +84,11 @@ var Graceland = function() {
 
       var player = players[ playerInfo.id ];
       if ( player && player.instance ) {
-         throw new Error( "Player with id (" + playerInfo.id + ") has already been injected" + playerInfo.id )
+         throw E.ALREADY_INJECTED;
       }
 
       if ( ! playerInfo.factory && ! playerInfo.value && ! playerInfo.lib ) {
-         throw new Error( "No value or factory exists in Player: " + playerInfo.id );
+         throw E.NEEDS_INJECTABLE;
       }
       
       var player = new Player( playerInfo );
@@ -100,11 +102,11 @@ var Graceland = function() {
       var player = players[ id ];
 
       if ( ! player ) {
-         throw new Error( "No Player with id: (" + id + ") has been registered." );
+         throw E.NO_PLAYER_REGISTERED;
       }
 
       if ( ! playing ) {
-         throw new Error( "Graceland isn't playing, graceland.play() first." );
+         throw E.NOT_PLAYING;
       }
 
       return player.instance;
@@ -128,7 +130,11 @@ var Graceland = function() {
             var pPlayer = players[ pId ];   
             
             if ( ! pPlayer ) {
-               throw new Error( "Missing dependency: " + pId );
+               throw E.MISSING_DEPENDENCY;
+            }
+
+            if ( pId === player.id ) {
+               throw E.SELF_INJECTION;
             }
 
             args.push( _getInstance( pPlayer ) );
@@ -137,7 +143,7 @@ var Graceland = function() {
          player.instance = player.factory.apply( null, args );
       
          if ( ! player.instance ) {
-            throw new Error( "Factory (" + player.id + ") didn't create anything." );
+            throw E.CREATED_NOTHING;
          }
 
          if ( _isFunction( player.instance.init ) ) {
@@ -170,7 +176,7 @@ var Graceland = function() {
       } else {
          // The check in register should catch this case, but this error
          // is good for when edits remove that by accident.
-         throw new Error( "No factory, library or value found." );
+         throw E.NEEDS_INJECTABLE;
       }
    }
 
@@ -181,7 +187,7 @@ var Graceland = function() {
    function _play() {
       
       if ( playing ) {
-         throw new Error( "Graceland is already playing." );
+         throw E.ALREADY_PLAYING;
       }
 
       Object.keys( players ).forEach( function( id ) {

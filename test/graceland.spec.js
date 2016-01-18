@@ -1,4 +1,5 @@
 var graceland = require( "../src/graceland.js" );
+var E = require( "../src/ERRORS.js" );
 
 var config = {
    filename: '/tmp/testfile.txt',
@@ -198,4 +199,23 @@ describe( "Testing Graceland depencency injection", function() {
       expect( prep ).toHaveBeenCalled();
    });
 
+   it ( "throws an exception when a factory depends on itself ", function() {
+      
+      var BrokenFactory = function( bFactory ) {
+         console.log( "HERE" ); 
+         return {}
+      }
+
+      graceland.register({
+         id: 'bFactory',
+         factory: BrokenFactory
+      });
+
+      try {
+         graceland.play();
+      } catch( err ) {
+         expect( err ).toBe( E.SELF_INJECTION );
+      }
+
+   });
 });
