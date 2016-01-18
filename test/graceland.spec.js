@@ -50,8 +50,6 @@ var FileReader = function( fpConfig ) {
    }
 }
 
-graceland.play();
-
 describe( "Testing Graceland depencency injection", function() {
    
    beforeEach( function() {
@@ -72,10 +70,7 @@ describe( "Testing Graceland depencency injection", function() {
 
       graceland.register({
          id: 'fpConfig',
-         value: config,
-         init: function() {
-            console.log( "Preparing some stuff" );
-         }
+         value: config
       });
 
       graceland.play();
@@ -107,10 +102,7 @@ describe( "Testing Graceland depencency injection", function() {
 
       graceland.register({
          id: 'fpConfig',
-         value: config,
-         init: function() {
-            console.log( "Preparing some stuff" );
-         }
+         value: config
       });
 
       graceland.register({
@@ -137,10 +129,7 @@ describe( "Testing Graceland depencency injection", function() {
 
       graceland.register({
          id: 'fpConfig',
-         value: config,
-         init: function() {
-            console.log( "Preparing some stuff" );
-         }
+         value: config
       });
 
       graceland.register({
