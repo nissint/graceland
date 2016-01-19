@@ -82,12 +82,19 @@ var Graceland = function() {
     */
    function _register( playerInfo ) {
 
-      var player = players[ playerInfo.id ];
-      if ( player && player.instance ) {
-         throw E.ALREADY_INJECTED;
+      if ( playing ) {
+         throw E.ALREADY_PLAYING;
       }
 
-      if ( ! playerInfo.factory && ! playerInfo.value && ! playerInfo.lib ) {
+		if ( ! _isDefined( playerInfo.id ) ) {
+			throw E.NO_ID;
+		}
+
+      var player = players[ playerInfo.id ];
+
+      if ( 		! _isFunction( playerInfo.factory ) 
+				&& ! _isDefined( playerInfo.lib )
+				&& ! _isDefined( playerInfo.value ) ) {
          throw E.NEEDS_INJECTABLE;
       }
       
@@ -102,7 +109,7 @@ var Graceland = function() {
       var player = players[ id ];
 
       if ( ! player ) {
-         throw E.NO_PLAYER_REGISTERED;
+         throw E.NO_SUCH_PLAYER;
       }
 
       if ( ! playing ) {
@@ -189,6 +196,12 @@ var Graceland = function() {
       if ( playing ) {
          throw E.ALREADY_PLAYING;
       }
+
+		var keys = Object.keys( players );
+
+		if ( keys.length === 0 ) {
+			throw E.NO_PLAYERS;
+		}
 
       Object.keys( players ).forEach( function( id ) {
          var player = players[ id ];

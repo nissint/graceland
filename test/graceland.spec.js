@@ -2,10 +2,7 @@ var graceland = require( "../src/graceland.js" );
 var E = require( "../src/errors.js" );
 
 var config = {
-   filename: '/tmp/testfile.txt',
-   somefunction: function() {
-      console.log( "<<a functon>>" );
-   }
+   filename: '/tmp/testfile.txt'
 }
 
 var FileParser = function( filereader, fpConfig ) {
@@ -198,6 +195,14 @@ describe( "Testing Graceland depencency injection", function() {
 
       expect( prep ).toHaveBeenCalled();
    });
+});
+
+
+describe( "Testing Graceland error conditions", function() {
+	   
+   beforeEach( function() {
+      graceland.clear();
+   });
 
    it ( "throws an exception when a factory depends on itself ", function() {
       
@@ -216,6 +221,142 @@ describe( "Testing Graceland depencency injection", function() {
       } catch( err ) {
          expect( err ).toBe( E.SELF_INJECTION );
       }
-
    });
+
+
+	it( "throws an exception when started twice", function() {
+
+		graceland.register({
+			id: 'testId',
+			value: "WHATEVER"
+		});
+
+		graceland.play();
+
+		try {
+			graceland.play();
+		} catch( err ) {
+			expect( err ).toBe( E.ALREADY_PLAYING ); 
+		}
+	});
+
+	it ( "throws an exception when attempting to get a player instance while not playing", function() {
+
+		var id = 'tf';
+		
+		var TestFactory = function() {
+			return {}
+		}
+
+		graceland.register({
+			id: id,
+			factory: TestFactory
+		});
+
+		try {
+			graceland.get( id );
+		} catch( err ) {
+			expect( err ).toBe( E.NOT_PLAYING );
+		}
+	});
+
+	it ( "throws an exception when a factory creates nothing", function() {
+		
+		var id = 'nf';
+		
+		var NotFactory = function() {}
+		graceland.register({
+			id: id,
+			factory: NotFactory
+		});
+
+		try {
+			graceland.play();
+		} catch( err ) {
+			expect( err ).toBe( E.CREATED_NOTHING );
+		}
+	});
+
+	it ( "throws an exception when a factory is missing a dependency", function() {
+		
+		var id = 'tf';
+		
+		var TestFactory = function( myMissingDep ) {
+			return {}
+		}
+
+		graceland.register({
+			id: id,
+			factory: TestFactory
+		});
+
+		try {
+			graceland.play();
+		} catch( err ) {
+			expect( err ).toBe( E.MISSING_DEPENDENCY );
+		}
+	});
+
+	it ( "throws an exception when trying to register a player while playing", function() {
+	
+		var TestFactory = function() {
+			return {}
+		}
+
+		var TooLateTestFactory = function() {
+			return {}
+		}
+
+		graceland.register({
+			id: 'tf',
+			factory: TestFactory
+		});
+
+		graceland.play();
+
+		try {
+			graceland.register({
+				id: 'tlf',
+				factory: TooLateTestFactory
+			});
+		} catch( err ) {
+			expect( err ).toBe( E.ALREADY_PLAYING );
+		}
+	});
+
+	it ( "throws an exception if a player has no injectable defined", function() {
+		
+		try {
+			graceland.register({
+				id: 'testId'
+			});
+		} catch( err ) {
+			expect( err ).toBe( E.NEEDS_INJECTABLE );
+		}
+	});
+
+	it ( "throws an exception if a player has no id defined", function() {
+		
+		try {
+			graceland.register({});
+		} catch( err ) {
+			expect( err ).toBe( E.NO_ID );
+		}
+	});
+
+	it ( "throws an exception when attempting to access an undefined player", function() {
+
+		graceland.register({
+			id: 'testId',
+			value: "WHATEVER"
+		});
+
+		graceland.play();
+
+		try {
+			graceland.get( 'someNonRegisteredPlayer' );
+		} catch( err ) {
+			expect( err ).toBe( E.NO_SUCH_PLAYER );
+		}
+	});
 });
