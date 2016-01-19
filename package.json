@@ -1,6 +1,6 @@
 {
    "name": "graceland",
-   "version": "0.1.1",
+   "version": "0.1.2",
    "description": "A Dependency Injection container with soul",
    "main": "src/graceland.js",
    "homepage": "https://github.com/qtpeters/graceland",
@@ -22,6 +22,10 @@
    },
    "license": "MIT",
    "devDependencies": {
+      "grunt": "0.4.5",
+      "grunt-cli": "0.1.13",
+      "grunt-jasmine-nodejs": "1.4.3",
+      "jasmine": "2.4.1"
    },
    "dependencies": {
    }
