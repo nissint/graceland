@@ -3,7 +3,7 @@
   "version": "0.1.4",
   "description": "A Dependency Injection container with soul",
   "main": "src/graceland.js",
-  "homepage": "https://github.com/qtpeters/graceland",
+  "homepage": "https://github.com/nissint/graceland",
   "directories": {
     "src": "src",
     "test": "test",
@@ -18,7 +18,7 @@
   "author": "Quinn Peters quinn.t.peters@gmail.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/qtpeters/graceland"
+    "url": "https://github.com/nissint/graceland"
   },
   "license": "MIT",
   "devDependencies": {
