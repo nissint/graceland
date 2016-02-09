@@ -83,19 +83,17 @@ var Graceland = function() {
    function _register( playerInfo ) {
 
       if ( playing ) {
-         throw E.ALREADY_PLAYING;
+         throw E.ALREADY_PLAYING();
       }
 
 		if ( ! _isDefined( playerInfo.id ) ) {
-			throw E.NO_ID;
+         throw E.NO_ID();
 		}
-
-      var player = players[ playerInfo.id ];
 
       if ( 		! _isFunction( playerInfo.factory ) 
 				&& ! _isDefined( playerInfo.lib )
 				&& ! _isDefined( playerInfo.value ) ) {
-         throw E.NEEDS_INJECTABLE;
+            throw E.NEEDS_INJECTABLE({ id: playerInfo.id });
       }
       
       var player = new Player( playerInfo );
@@ -109,11 +107,11 @@ var Graceland = function() {
       var player = players[ id ];
 
       if ( ! player ) {
-         throw E.NO_SUCH_PLAYER;
+         throw E.NO_SUCH_PLAYER({ id: id });
       }
 
       if ( ! playing ) {
-         throw E.NOT_PLAYING;
+         throw E.NOT_PLAYING();
       }
 
       return player.instance;
@@ -137,11 +135,14 @@ var Graceland = function() {
             var pPlayer = players[ pId ];   
             
             if ( ! pPlayer ) {
-               throw E.MISSING_DEPENDENCY;
+               throw E.MISSING_DEPENDENCY({ 
+                  playerId: player.id, 
+                  paramId: pId 
+               });
             }
 
             if ( pId === player.id ) {
-               throw E.SELF_INJECTION;
+               throw E.SELF_INJECTION({ id: player.id });
             }
 
             args.push( _getInstance( pPlayer ) );
@@ -150,7 +151,7 @@ var Graceland = function() {
          player.instance = player.factory.apply( null, args );
       
          if ( ! player.instance ) {
-            throw E.CREATED_NOTHING;
+            throw E.CREATED_NOTHING({ id: player.id });
          }
 
          if ( _isFunction( player.instance.init ) ) {
@@ -183,7 +184,7 @@ var Graceland = function() {
       } else {
          // The check in register should catch this case, but this error
          // is good for when edits remove that by accident.
-         throw E.NEEDS_INJECTABLE;
+         throw E.NEEDS_INJECTABLE({ id: player.id });
       }
    }
 
@@ -194,13 +195,13 @@ var Graceland = function() {
    function _play() {
       
       if ( playing ) {
-         throw E.ALREADY_PLAYING;
+         throw E.ALREADY_PLAYING();
       }
 
 		var keys = Object.keys( players );
 
 		if ( keys.length === 0 ) {
-			throw E.NO_PLAYERS;
+         throw E.NO_PLAYERS();
 		}
 
       Object.keys( players ).forEach( function( id ) {

@@ -219,7 +219,7 @@ describe( "Testing Graceland error conditions", function() {
       try {
          graceland.play();
       } catch( err ) {
-         expect( err ).toBe( E.SELF_INJECTION );
+         expect( err ).toBe( E.SELF_INJECTION({ id: 'bFactory' }) );
       }
    });
 
@@ -236,7 +236,7 @@ describe( "Testing Graceland error conditions", function() {
 		try {
 			graceland.play();
 		} catch( err ) {
-			expect( err ).toBe( E.ALREADY_PLAYING ); 
+         expect( err ).toBe( E.ALREADY_PLAYING() ); 
 		}
 	});
 
@@ -256,7 +256,7 @@ describe( "Testing Graceland error conditions", function() {
 		try {
 			graceland.get( id );
 		} catch( err ) {
-			expect( err ).toBe( E.NOT_PLAYING );
+         expect( err ).toBe( E.NOT_PLAYING() );
 		}
 	});
 
@@ -273,27 +273,27 @@ describe( "Testing Graceland error conditions", function() {
 		try {
 			graceland.play();
 		} catch( err ) {
-			expect( err ).toBe( E.CREATED_NOTHING );
+         expect( err ).toBe( E.CREATED_NOTHING({ id: id }) );
 		}
 	});
 
 	it ( "throws an exception when a factory is missing a dependency", function() {
 		
-		var id = 'tf';
+		var id = 'testId';
 		
 		var TestFactory = function( myMissingDep ) {
 			return {}
 		}
 
 		graceland.register({
-			id: id,
+         id: id,
 			factory: TestFactory
 		});
 
 		try {
 			graceland.play();
 		} catch( err ) {
-			expect( err ).toBe( E.MISSING_DEPENDENCY );
+         expect( err ).toBe( E.MISSING_DEPENDENCY({ playerId: id, paramId: 'myMissingDep' }) );
 		}
 	});
 
@@ -320,18 +320,20 @@ describe( "Testing Graceland error conditions", function() {
 				factory: TooLateTestFactory
 			});
 		} catch( err ) {
-			expect( err ).toBe( E.ALREADY_PLAYING );
+         expect( err ).toBe( E.ALREADY_PLAYING() );
 		}
 	});
 
 	it ( "throws an exception if a player has no injectable defined", function() {
 		
+      var id = 'testId';
+
 		try {
 			graceland.register({
-				id: 'testId'
+				id: id
 			});
 		} catch( err ) {
-			expect( err ).toBe( E.NEEDS_INJECTABLE );
+         expect( err ).toBe( E.NEEDS_INJECTABLE({ id:id }) );
 		}
 	});
 
@@ -340,14 +342,16 @@ describe( "Testing Graceland error conditions", function() {
 		try {
 			graceland.register({});
 		} catch( err ) {
-			expect( err ).toBe( E.NO_ID );
+         expect( err ).toBe( E.NO_ID() );
 		}
 	});
 
 	it ( "throws an exception when attempting to access an undefined player", function() {
 
+      var id = 'testId';
+
 		graceland.register({
-			id: 'testId',
+			id: id,
 			value: "WHATEVER"
 		});
 
@@ -356,7 +360,7 @@ describe( "Testing Graceland error conditions", function() {
 		try {
 			graceland.get( 'someNonRegisteredPlayer' );
 		} catch( err ) {
-			expect( err ).toBe( E.NO_SUCH_PLAYER );
+         expect( err ).toBe( E.NO_SUCH_PLAYER({ id:id }) );
 		}
 	});
 });
