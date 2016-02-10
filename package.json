@@ -1,6 +1,6 @@
 {
   "name": "graceland",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A Dependency Injection container with soul",
   "main": "src/graceland.js",
   "homepage": "https://github.com/nissint/graceland",
