@@ -7,7 +7,7 @@ module.exports = function( grunt ) {
                specNameSuffix: 'spec.js',
                useHelpers: false,
                stopOnFailure: true,
-               repoters: {
+               reporters: {
                   colors: true,
                   cleanStack: true,
                   verbosity: 4,
