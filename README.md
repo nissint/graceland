@@ -47,7 +47,8 @@ myFactory.doFsThing();
 
 There are three different types of entities that can be registered with Graceland:
 
-#### Factories - When registered with Graceland, Factories are used to create an instance and that instance is what is injected into to other factories. There are two optional functions one 
+#### Factories 
+* When registered with Graceland, Factories are used to create an instance and that instance is what is injected into to other factories. There are two optional functions one 
   can define on the instance returned by the factory:
   * init - runs before the instance creation and can be used for further runtime initialization of the factory instance.
   * destroy - runs before Graceland exits and can be used for teardown of the factory instance.
@@ -72,8 +73,8 @@ graceland.register({
    }
 });
 ```
-#### Libraries - Libraries are usually third party objects like fs or http.  Graceland does nothing to these entities except pass them in. There is an optional 'prep' function you can define
-  in the configuration object you create for the register function that will be executed before being injected.
+#### Libraries
+* Libraries are usually third party objects like fs or http.  Graceland does nothing to these entities except pass them in. There is an optional 'prep' function you can define in the configuration object you create for the register function that will be executed before being injected.
   * Example:
 ```
 graceland.register({
@@ -85,7 +86,9 @@ graceland.register({
    }
 });
 ```
-#### Values - Values are simple strings, objects or numerical values that one my want to inject into factories for configuration. 
+#### Values
+* Values are simple strings, objects or numerical values that one my want to inject into factories for configuration.
+  * Example:
 ```
 graceland.register({
    id: 'importantValue',
