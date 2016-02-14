@@ -102,7 +102,7 @@ graceland.register({
 
 When all the entities are registered, a call to:
 ```
-graceland.start();
+graceland.play();
 ```
 will start the application.
 
