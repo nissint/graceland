@@ -14,7 +14,7 @@ var graceland = require( 'graceland' );
 
 graceland.register({
    id: 'fs',
-   lib: require( 'fs' );
+   lib: require( 'fs' )
 });
 
 graceland.register({
@@ -43,6 +43,58 @@ myFactory.doFsThing();
 
 ```
 
+### Entity Registration
+
+There are three different types of entities that can be registered with Graceland:
+
+#### Factories - When registered with Graceland, Factories are used to create an instance and that instance is what is injected into to other factories. There are two optional functions one 
+  can define on the instance returned by the factory:
+  * init - runs before the instance creation and can be used for further runtime initialization of the factory instance.
+  * destroy - runs before Graceland exits and can be used for teardown of the factory instance.
+  * Example:
+``` 
+graceland.register({
+   id: 'myFactory',
+
+   // Inject fs and otherFactoryInstance
+   factory: function( fs, otherFactoryInstance ) {
+
+      // Do something
+      function _doWork() {
+         ...
+      }
+
+      return {
+         doWork: _doWork,
+         init: function() { // Do init },
+         destroy: function() { // Do teardown } 
+      }
+   }
+});
+```
+#### Libraries - Libraries are usually third party objects like fs or http.  Graceland does nothing to these entities except pass them in. There is an optional 'prep' function you can define
+  in the configuration object you create for the register function that will be executed before being injected.
+  * Example:
+```
+graceland.register({
+   id: 'fs',
+   lib: require( 'fs' ),
+   prep: function( fs ) {
+      // Do Something to prep fs
+      return fs;
+   }
+});
+```
+#### Values - Values are simple strings, objects or numerical values that one my want to inject into factories for configuration. 
+```
+graceland.register({
+   id: 'importantValue',
+   value: { 
+      username: 'user', 
+      password: 'pwd' 
+   }
+});
+```
 ### Why this is better
 
 #### Unit Testing
