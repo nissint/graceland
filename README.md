@@ -1,4 +1,3 @@
-## Graceland Dependency Injection Framework
 ![Graceland](https://github.com/qtpeters/graceland/blob/master/wiki/images/GracelandGuitar_vectorized.png)
 ### Installing the library
 
