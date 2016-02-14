@@ -97,6 +97,15 @@ graceland.register({
    }
 });
 ```
+
+### Starting Graceland
+
+When all the entities are registered, a call to:
+```
+graceland.start();
+```
+will start the application.
+
 ### Why this is better
 
 #### Unit Testing
