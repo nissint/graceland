@@ -32,7 +32,7 @@ graceland.register({
 });
 
 // Start Graceland
-graceland.start();
+graceland.play();
 
 // Get your factory
 var myFactory = graceland.get( 'myFactory' );
