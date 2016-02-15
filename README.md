@@ -1,9 +1,11 @@
 ![Graceland](https://github.com/qtpeters/graceland/blob/master/wiki/images/GracelandGuitar_vectorized.png)
 ### Installing the library
 
-In order to install this library you need to install dependencies with:
+In order to install this library all you need to do is:
 
     npm install graceland --save-dev
+
+Graceland has no dependencies other than those used to test the framework.
 
 ### Adding Graceland to your project 
 
