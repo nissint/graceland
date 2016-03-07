@@ -123,6 +123,9 @@ var Graceland = function() {
     */
    function _getInstance( player ) {
 
+      if( player.instance !== null )
+        return player.instance;
+
       /**
        * Actions to be performed if the Player is a factory used to create
        * an instance.
